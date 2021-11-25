@@ -18,4 +18,8 @@ Deploys a network with a subnet and a ubuntu 16.04 LTS VM on top.
 - output
 
 ### Info
-Further documentation can be found on (https://registry.terraform.io/)  **Easier to google with the term ex: terraform azure vm**
+- Remember to change the username and password in main.tf before deployment.
+
+- It may take up to 5-10minutes before the image is fully deployed so that you can log in with ssh.
+
+- Further documentation can be found on (https://registry.terraform.io/)  **Easier to google with the term ex: terraform azure vm**
