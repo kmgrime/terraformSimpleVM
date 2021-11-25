@@ -1,84 +1,72 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source = "hashicorp/azurerm"
+      version = "2.85.0"
+    }
+  }
+}
+
 provider "azurerm" {
+  # Configuration options
   features {}
 }
 
-#Resource Groups
-resource "azurerm_resource_group" "rg" {
-  name     = "UbuntuLinux"
+#Deployment Virtual Machine
+#prefix
+variable "prefix" {
+  default = "linuxvm"
+}
+
+#resource_group
+resource "azurerm_resource_group" "main" {
+  name     = "ubuntuLinuxVM"
   location = "norwayeast"
 }
 
-#Networking
-resource "azurerm_virtual_network" "ubuntu" {
-  name                = "vNet01"
-  address_space       = ["17.2.0.0/16"]
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+#networking
+resource "azurerm_virtual_network" "main" {
+  name                = "${var.prefix}-network"
+  address_space       = ["10.9.0.0/16"]
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 }
 
-resource "azurerm_subnet" "ubuntu" {
-  name                 = "subnet01"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = "vNet01"
-  address_prefixes     = ["17.2.1.0/24"]
-  depends_on = [
-    azurerm_virtual_network.ubuntu
-  ]
-  
+#subnet
+resource "azurerm_subnet" "internal" {
+  name                 = "${var.prefix}-subnet"
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.9.8.0/24"]
 }
 
-#VM NIC
-resource "azurerm_network_interface" "ubuntu" {
-  name                = "ubuntulinux-nic"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+#network_interface
+resource "azurerm_network_interface" "main" {
+  name                = "${var.prefix}-nic"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 
   ip_configuration {
-    name                          = "internalIP"
-    subnet_id                     = azurerm_subnet.ubuntu.id
+    name                          = "${var.prefix}-ip"
+    subnet_id                     = azurerm_subnet.internal.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.ubuntu.id
   }
 }
 
-resource "azurerm_linux_virtual_machine" "ubuntu" {
-  name                = "ubuntuLinuxVM"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  size                = "Standard_F2"
-  admin_username      = "admin"
-  admin_password      = "admin1234"
-  network_interface_ids = [
-    azurerm_network_interface.ubuntu.id,
-  ]
+ resource "azurerm_public_ip" "pubip" {
+   name                         = "${var.prefix}-pip"
+   location                     = azurerm_resource_group.main.location
+   resource_group_name          = azurerm_resource_group.main.name
+   allocation_method = "Static"
+ tags = {
+     environment = "test"
+   }
+ }
 
-  admin_ssh_key {
-    username   = "admin"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "20.04-LTS"
-    version   = "latest"
-  }
-}
-
-resource "azurerm_public_ip" "ubuntu" {
-  name                = "ubuntu01publicip1"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  allocation_method   = "Dynamic"
-}
-
+#NSG
 resource "azurerm_network_security_group" "ubuntu" {
-  name                = "ubuntu-security-group1"
+  name                = "${var.prefix}-nsg"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -95,7 +83,45 @@ resource "azurerm_network_security_group" "ubuntu" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "ubuntu" {
-    network_interface_id      = azurerm_network_interface.ubuntu.id
-    network_security_group_id = azurerm_network_security_group.ubuntu.id
+resource "azurerm_virtual_machine" "main" {
+  name                  = "${var.prefix}-vm"
+  location              = azurerm_resource_group.main.location
+  resource_group_name   = azurerm_resource_group.main.name
+  network_interface_ids = [azurerm_network_interface.main.id]
+  vm_size               = "Standard_B1s"
+
+  # Delete the OS disk automatically when deleting the VM
+  delete_os_disk_on_termination = true
+
+  # Delete the data disks automatically when deleting the VM
+  delete_data_disks_on_termination = true
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+  storage_os_disk {
+    name              = "${var.prefix}-disk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+  os_profile {
+    computer_name  = "tux"
+    admin_username = "changeme"
+    admin_password = "changeme123!"
+  }
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+  tags = {
+    environment = "testing"
+  }
 }
+
+output "ipaddres" {
+      description = "The Public IP address is:"
+      value = azurerm_public_ip.pubip.ip_address
+       }
