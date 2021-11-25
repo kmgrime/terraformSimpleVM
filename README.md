@@ -2,7 +2,7 @@
 
 A simple deployment of a linux vm in Azure
 
-## description
+## Description
 Deploys a network with a subnet and a ubuntu 16.04 LTS VM on top.
 
 ## Deployment
@@ -17,5 +17,5 @@ Deploys a network with a subnet and a ubuntu 16.04 LTS VM on top.
 - vm
 - output
 
-### SUBSUBTOPIC2
-further documentation can be found on (https://registry.terraform.io/)  **Easier to google with the term ex: terraform azure vm**
+### Info
+Further documentation can be found on (https://registry.terraform.io/)  **Easier to google with the term ex: terraform azure vm**
