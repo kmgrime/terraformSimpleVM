@@ -19,12 +19,3 @@ Deploys a network with a subnet and a ubuntu 16.04 LTS VM on top.
 
 ### SUBSUBTOPIC2
 further documentation can be found on (https://registry.terraform.io/)  **Easier to google with the term ex: terraform azure vm**
-
-## TOPIC3
-### SUBSUBTOPIC1
-text
-
-Some text **phatText** :
-- /b
-- /b2
-- /b3
