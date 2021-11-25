@@ -5,14 +5,20 @@ A simple deployment of a linux vm in Azure
 ## description
 Deploys a network with a subnet and a ubuntu 16.04 LTS VM on top.
 
-## Naming
-### List
-- vNet01
-- subnet01
-- NSG
+## Deployment
+### Includes
+- prefix
+- resource group
+- network
+- subnet
+- nic
+- pip
+- nsg
+- vm
+- output
 
 ### SUBSUBTOPIC2
-text (https://link.com/) thingie **phatText**
+further documentation can be found on (https://registry.terraform.io/)  **Easier to google with the term ex: terraform azure vm**
 
 ## TOPIC3
 ### SUBSUBTOPIC1
