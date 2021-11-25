@@ -54,7 +54,8 @@ resource "azurerm_network_interface" "main" {
   }
 }
 
- resource "azurerm_public_ip" "pubip" {
+#pip
+ resource "azurerm_public_ip" "ubuntu" {
    name                         = "${var.prefix}-pip"
    location                     = azurerm_resource_group.main.location
    resource_group_name          = azurerm_resource_group.main.name
@@ -64,11 +65,11 @@ resource "azurerm_network_interface" "main" {
    }
  }
 
-#NSG
+#nsg
 resource "azurerm_network_security_group" "ubuntu" {
   name                = "${var.prefix}-nsg"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 
   security_rule {
     name                       = "ssh"
@@ -83,6 +84,7 @@ resource "azurerm_network_security_group" "ubuntu" {
   }
 }
 
+#vm
 resource "azurerm_virtual_machine" "main" {
   name                  = "${var.prefix}-vm"
   location              = azurerm_resource_group.main.location
@@ -123,5 +125,5 @@ resource "azurerm_virtual_machine" "main" {
 
 output "ipaddres" {
       description = "The Public IP address is:"
-      value = azurerm_public_ip.pubip.ip_address
+      value = azurerm_public_ip.ubuntu.ip_address
        }
