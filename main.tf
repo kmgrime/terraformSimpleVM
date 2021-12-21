@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      version = "2.85.0"
+      version = "2.90.0"
     }
   }
 }
@@ -20,14 +20,14 @@ variable "prefix" {
 
 #resource_group
 resource "azurerm_resource_group" "main" {
-  name     = "ubuntuLinuxVM"
+  name     = "linux"
   location = "norwayeast"
 }
 
 #networking
 resource "azurerm_virtual_network" "main" {
   name                = "${var.prefix}-network"
-  address_space       = ["10.9.0.0/16"]
+  address_space       = ["10.5.0.0/16"]
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 }
@@ -37,7 +37,7 @@ resource "azurerm_subnet" "internal" {
   name                 = "${var.prefix}-subnet"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = ["10.9.8.0/24"]
+  address_prefixes     = ["10.5.1.0/24"]
 }
 
 #network_interface
@@ -98,10 +98,13 @@ resource "azurerm_virtual_machine" "main" {
   # Delete the data disks automatically when deleting the VM
   delete_data_disks_on_termination = true
 
+# List skus
+# az vm image list-skus --location westus --publisher Canonical --offer UbuntuServer --output table
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
   storage_os_disk {
